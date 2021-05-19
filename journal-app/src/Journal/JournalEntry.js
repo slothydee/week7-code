@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
+import firebase from 'firebase';
 import db from '../firebase/db';
 import DeleteButton from './DeleteButton';
 import firebase from 'firebase'
@@ -84,26 +85,29 @@ export default function JournalEntry() {
     const history = useHistory();
 
     useEffect(() => {
-        this.unregisterAuthObserver = firebase
+        const unregisterAuthObserver = firebase
             .auth()
             .onAuthStateChanged(user => {
                 if (!user) {
-                    return;
+                    return; // TODO: Handle this gracefully
                 }
 
                 db
-                .collection('users')
-                .doc(user.id)
-                .collection(JOURNAL_COLLECTION)
-                .doc(id)
-                .get()
-                .then(doc => {
-                    if (doc.exists) {
-                        setEntry(doc.data());
-                    }
-                });
-            }
-            )
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection(JOURNAL_COLLECTION)
+                    .doc(id)
+                    .get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            setEntry(doc.data());
+                        }
+                    });
+            });
+        
+        return () => {
+            unregisterAuthObserver();
+        }
     }, [id]);
 
     const onJournalChange = (event) => {
@@ -114,7 +118,16 @@ export default function JournalEntry() {
     };
 
     const onUpdate = () => {
-        db.collection(JOURNAL_COLLECTION)
+        const user = firebase.auth().currentUser;
+
+        if (!user) {
+            return; // TODO: Handle this gracefully
+        }
+
+        db
+            .collection('users')
+            .doc(user.uid)
+            .collection(JOURNAL_COLLECTION)
             .doc(id)
             .set({ entry: journalEntry.entry }, { merge: true })
             .then(() => history.push(JOURNAL_LIST));

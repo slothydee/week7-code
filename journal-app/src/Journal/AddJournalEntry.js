@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import firebase from 'firebase';
 import db from '../firebase/db';
 import firebase from 'firebase'
 

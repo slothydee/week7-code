@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types';
+import firebase from 'firebase';
 import db from '../firebase/db';
 import { useHistory, useLocation } from 'react-router';
 import firebase from 'firebase'
@@ -10,11 +11,15 @@ export default function DeleteButton({ id }) {
 
     const onDelete = () => {
         const user = firebase.auth().currentUser;
-        
+
         if (!user) {
-            return; //todo handle gracefully
+            return; // TODO: Handle this gracefully
         }
-        db.collection('journalEntries')
+
+        db
+            .collection('users')
+            .doc(user.uid)
+            .collection('journalEntries')
             .doc(id)
             .delete()
             .then(() => {
