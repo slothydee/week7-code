@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import firebase from 'firebase';
 import db from '../firebase/db';
 
 export default class AddJournalEntry extends Component {
@@ -14,8 +15,17 @@ export default class AddJournalEntry extends Component {
 
     onFormSubmit = (event) => {
         event.preventDefault();
-        // console.log(this.state.entry);
-        db.collection('journalEntries')
+
+        const user = firebase.auth().currentUser;
+
+        if (!user) {
+            return; // TODO: Handle this gracefully
+        }
+
+        db
+            .collection('users')
+            .doc(user.uid)
+            .collection('journalEntries')
             .add({
                 entry: this.state.entry,
                 createdAt: new Date()
