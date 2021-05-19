@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import AddJournalEntry from './AddJournalEntry';
 import DeleteButton from './DeleteButton';
 import db from '../firebase/db';
+import firebase from 'firebase';
 
 export default class Journal extends React.Component {
     state = {
@@ -10,7 +11,18 @@ export default class Journal extends React.Component {
     }
 
     componentDidMount() {
-        this.unsubscribe = db.collection('journalEntries')
+        this.unregisterAuthObserver = firebase
+            .auth()
+            .onAuthStateChanged(user => {
+            if (!user) {
+                return; //TODO: handle this gracefully
+            }
+
+            const userId = user.uid;
+            this.unsubscribe = db
+            .collection('users')
+            .doc(userId)
+            .collection('journalEntries')
             .orderBy('createdAt', 'asc')
             .onSnapshot((data) => {
                 const journalEntries = data.docs.map(doc => {
@@ -24,6 +36,8 @@ export default class Journal extends React.Component {
                     journalEntries
                 })
             });
+            });
+        
     }
 
     componentWillUnmount() {

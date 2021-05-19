@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import db from '../firebase/db';
 import DeleteButton from './DeleteButton';
+import firebase from 'firebase'
 
 // export default class JournalEntry extends React.Component {
 //     state = {
@@ -83,14 +84,26 @@ export default function JournalEntry() {
     const history = useHistory();
 
     useEffect(() => {
-        db.collection(JOURNAL_COLLECTION)
-            .doc(id)
-            .get()
-            .then(doc => {
-                if (doc.exists) {
-                    setEntry(doc.data());
+        this.unregisterAuthObserver = firebase
+            .auth()
+            .onAuthStateChanged(user => {
+                if (!user) {
+                    return;
                 }
-            });
+
+                db
+                .collection('users')
+                .doc(user.id)
+                .collection(JOURNAL_COLLECTION)
+                .doc(id)
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        setEntry(doc.data());
+                    }
+                });
+            }
+            )
     }, [id]);
 
     const onJournalChange = (event) => {

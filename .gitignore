@@ -102,3 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+journal-app/.env
+journal-app/.npmrc
+journal-app/.env
+journal-app/.env
